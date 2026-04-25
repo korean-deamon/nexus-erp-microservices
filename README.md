@@ -13,34 +13,42 @@ A high-performance, enterprise-grade ERP system built on a microservices archite
 
 ## 🏗️ System Architecture
 
-```text
-                                 ╔════════════════════════╗
-                                 ║   USER / WEB BROWSER   ║
-                                 ╚══════════╦═════════════╝
-                                            ║
-                                            ▼ (HTTP/WebSocket)
-       ┌──────────────────────────────────────────────────────────────────────────┐
-       │                        NGINX API GATEWAY (Port 8080)                     │
-       │           (Central Routing, Load Balancing & SSL Termination)            │
-       └─────┬──────────────────────────────┬──────────────────────────────┬──────┘
-             │                              │                              │
-             ▼ (/)                          ▼ (/api/v1)                    ▼ (/graphql)
-   ╔══════════════════╗           ╔══════════════════╗           ╔══════════════════╗
-   ║  FRONTEND APP    ║           ║  OPERATIONS API  ║           ║  ANALYTICS HUB   ║
-   ║    (Next.js)     ║           ║    (Node.js)     ║           ║     (Python)     ║
-   ╠══════════════════╣           ╠══════════════════╣           ╠══════════════════╣
-   ║ - React UI       ║           ║ - JWT Auth       ║           ║ - GraphQL Schema ║
-   ║ - State Mgmt     ║           ║ - Order Logic    ║           ║ - Data Mining    ║
-   ║ - Socket Client  ║           ║ - Socket.io Serv ║           ║ - FastAPI Engine ║
-   ╚═════════╦════════╝           ╚════════╦═════════╝           ╚════════╦═════════╝
-             ║                             ║                              ║
-             ╚══════════════╦══════════════╩══════════════╦═══════════════╝
-                            ║                             ║
-                            ▼                             ▼
-                 ┌───────────────────┐         ┌───────────────────┐
-                 │   POSTGRESQL DB   │         │    REDIS CACHE    │
-                 │ (Relational Data) │         │ (Real-time Sync)  │
-                 └───────────────────┘         └───────────────────┘
+```mermaid
+flowchart TD
+    subgraph GW [Nginx API Gateway]
+        GW[Nginx]
+    end
+    subgraph FE [Frontend (Next.js)]
+        FE[Next.js App]
+    end
+    subgraph MA [Mobile App (Expo)]
+        MA[React Native Expo]
+    end
+    subgraph OPS [Operations Service (Node.js)]
+        OPS[Service A]
+    end
+    subgraph ANALYT [Analytics Service (Python)]
+        ANALYT[Service B]
+    end
+    subgraph DB [PostgreSQL DB]
+        DB[(PostgreSQL)]
+    end
+    subgraph CACHE [Redis Cache]
+        CACHE[(Redis)]
+    end
+    subgraph WS [Socket.io Server]
+        WS[Socket.io]
+    end
+
+    GW -->|HTTP| FE
+    GW -->|HTTP| MA
+    GW -->|WebSocket| WS
+    FE -->|REST| OPS
+    MA -->|REST| OPS
+    MA -->|WebSocket| WS
+    OPS -->|Prisma| DB
+    OPS -->|Cache| CACHE
+    ANALYT -->|GraphQL| DB
 ```
 
 ## 📂 Project Structure

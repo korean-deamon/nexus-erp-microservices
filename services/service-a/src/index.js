@@ -299,7 +299,7 @@ app.post('/auth/register', async (req, res) => {
     const { email, password, name } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({ data: { email, password: hashedPassword, name, role: 'USER' } });
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET);
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '30m' });
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
 });
 
@@ -307,7 +307,7 @@ app.post('/auth/login', async (req, res) => {
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ error: 'Wrong credentials' });
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET);
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '30m' });
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
 });
 

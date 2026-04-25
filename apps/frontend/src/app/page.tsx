@@ -62,6 +62,17 @@ export default function NexusApp() {
     }
   }, []);
 
+  // Auto-logout timer (30 mins)
+  useEffect(() => {
+    if (isLoggedIn) {
+      const timer = setTimeout(() => {
+        handleLogout();
+        alert('Session expired. Please log in again.');
+      }, 30 * 60 * 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoggedIn]);
+
   // Socket Connection Effect
   useEffect(() => {
     const savedToken = localStorage.getItem('token');

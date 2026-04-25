@@ -46,6 +46,11 @@ export default function NexusApp() {
      }
    }, [showEditModal]);
 
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
   useEffect(() => {
     setMounted(true);
     
@@ -342,7 +347,7 @@ export default function NexusApp() {
           ))}
         </nav>
         <div className="mt-auto space-y-2">
-            <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="w-full p-3.5 text-rose-500/60 font-black uppercase text-[9px] tracking-widest flex items-center gap-3 hover:text-rose-500 transition-all"><LogOut className="w-4 h-4" /> Exit</button>
+            <button onClick={handleLogout} className="w-full p-3.5 text-rose-500/60 font-black uppercase text-[9px] tracking-widest flex items-center gap-3 hover:text-rose-500 transition-all"><LogOut className="w-4 h-4" /> Exit</button>
         </div>
       </aside>
 
@@ -384,7 +389,7 @@ export default function NexusApp() {
               </button>
             )
         ))}
-        <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="flex flex-col items-center gap-1 p-2 text-rose-500/50">
+        <button onClick={handleLogout} className="flex flex-col items-center gap-1 p-2 text-rose-500/50">
             <LogOut className="w-5 h-5" />
             <span className="text-[7px] font-black uppercase tracking-tighter">Exit</span>
         </button>

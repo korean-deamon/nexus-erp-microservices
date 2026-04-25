@@ -18,16 +18,16 @@ flowchart TD
     subgraph GW [Nginx API Gateway]
         GW[Nginx]
     end
-    subgraph FE [Frontend (Next.js)]
+    subgraph FE [Frontend - Next.js]
         FE[Next.js App]
     end
-    subgraph MA [Mobile App (Expo)]
+    subgraph MA [Mobile App - Expo]
         MA[React Native Expo]
     end
-    subgraph OPS [Operations Service (Node.js)]
+    subgraph OPS [Operations Service - Node.js]
         OPS[Service A]
     end
-    subgraph ANALYT [Analytics Service (Python)]
+    subgraph ANALYT [Analytics Service - Python]
         ANALYT[Service B]
     end
     subgraph DB [PostgreSQL DB]

@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+strawberry-graphql[fastapi]
+sqlalchemy
+psycopg2-binary
+pydantic-settings
+redis

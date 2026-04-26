@@ -1,6 +1,6 @@
 # 🛡️ Nexus ERP: Universal Operational Suite (v3.0)
 
-A high-performance, enterprise-grade ERP system built on a microservices architecture. Featuring real-time stock synchronization, advanced analytics, a premium "Nexus Pro" visual interface, and a **dedicated mobile application** for field operations.
+A high-performance, enterprise-grade ERP system built on a microservices architecture. Featuring real-time stock synchronization, advanced analytics, a premium "Nexus Pro" visual interface, and a **dedicated mobile application (Expo SDK 51)** for field operations.
 
 ## 🚀 Key Features
 
@@ -71,13 +71,13 @@ final/
    docker-compose exec service-operations npx prisma db push
    ```
 
-### 2. Mobile Application
+### 2. Mobile Application (Expo SDK 51)
 1. **Navigate to App**: `cd apps/mobile`
 2. **Install Dependencies**: `npm install`
 3. **Set Environment**: Ensure `EXPO_PUBLIC_API_URL` in `.env` points to your machine's local IP (e.g., `http://192.168.1.10:8080`).
-4. **Launch**:
+4. **Launch with Cache Clear**:
    ```bash
-   npx expo start
+   npx expo start -c --offline
    ```
 
 ## 📊 Operations Guide

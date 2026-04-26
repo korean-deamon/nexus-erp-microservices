@@ -184,7 +184,7 @@ app.post('/checkout', authMiddleware, async (req, res) => {
         const orderSummary = basketItems.map(i => i.name).join(', ');
         const notificationData = { 
             type: 'ORDER_RECEIVED', 
-            message: `${req.user.name || req.user.email} ordered: ${orderSummary}` 
+            message: `${req.user.name} placed a new order ($${total.toLocaleString()}). Items: ${orderSummary}` 
         };
         
         console.log(`📣 NOTIFYING ADMINS: ${notificationData.message}`);
@@ -231,6 +231,10 @@ app.patch('/orders/:id/cancel', authMiddleware, async (req, res) => {
         
         io.to(order.userId).emit('notification', { type: 'CANCEL', message: `Order #${order.id.substring(0,5)} cancelled.` });
         io.to('GLOBAL_CHANNEL').emit('notification', { type: 'REFRESH_INV' });
+        
+        // Adminga xabar yuborish
+        const adminMsg = req.user.role === 'USER' ? `User cancelled order #${order.id.substring(0,5)}` : `Order #${order.id.substring(0,5)} cancelled by admin.`;
+        io.to('ADMIN_ROOM').emit('notification', { type: 'ORDER_CANCELLED', message: adminMsg });
         io.to('ADMIN_ROOM').emit('notification', { type: 'REFRESH_ORDERS' });
         
         res.json(updated);
@@ -299,7 +303,8 @@ app.post('/auth/register', async (req, res) => {
     const { email, password, name } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({ data: { email, password: hashedPassword, name, role: 'USER' } });
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '30m' });
+    const expiry = process.env.JWT_EXPIRY || '3h';
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: expiry });
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
 });
 
@@ -307,7 +312,8 @@ app.post('/auth/login', async (req, res) => {
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ error: 'Wrong credentials' });
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '30m' });
+    const expiry = process.env.JWT_EXPIRY || '3h';
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: expiry });
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
 });
 

@@ -36,6 +36,9 @@ services:
       - redis
     ports:
       - "3001:3001"
+    volumes:
+      - ./services/service-a:/app
+      - /app/node_modules
 
   # Service B: Analytics (FastAPI)
   service-analytics:

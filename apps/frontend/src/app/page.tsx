@@ -72,7 +72,7 @@ export default function NexusApp() {
   // Auto-logout timer (30 mins)
   useEffect(() => {
     if (isLoggedIn) {
-      const expiryMs = parseInt(process.env.NEXT_PUBLIC_SESSION_EXPIRY_MS) || 3 * 60 * 60 * 1000;
+      const expiryMs = parseInt(process.env.NEXT_PUBLIC_SESSION_EXPIRY_MS || '0') || 3 * 60 * 60 * 1000;
       const timer = setTimeout(() => {
         handleLogout();
         alert('Session expired. Please log in again.');

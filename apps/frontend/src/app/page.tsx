@@ -584,7 +584,7 @@ export default function NexusApp() {
                             </div>
                             <span className={`text-[8px] font-black uppercase tracking-tighter ${!userFilter ? 'text-indigo-400' : 'text-zinc-600'}`}>All Users</span>
                          </button>
-                         {[...new Set(orders.map(o => JSON.stringify({ id: o.userId, name: o.user?.name || 'User' })))].map(uStr => {
+                         {Array.from(new Set(orders.map(o => JSON.stringify({ id: o.userId, name: o.user?.name || 'User' })))).map(uStr => {
                             const u = JSON.parse(uStr);
                             const userActiveCount = orders.filter(o => o.userId === u.id && o.status !== 'COMPLETED' && o.status !== 'CANCELLED').length;
                             return (

@@ -19,25 +19,31 @@ A high-performance, enterprise-grade ERP system built on a microservices archite
                                  ║   USER / WEB BROWSER / MOBILE APP     ║
                                  ╚═══════════════╦═══════════════════════╝
                                                  ║
-                                                 ▼ (HTTP/WebSocket)
+                                                 ▼ (HTTP/WebSocket/GraphQL)
         ┌──────────────────────────────────────────────────────────────────────────┐
         │                        NGINX API GATEWAY (Port 8080)                     │
         └─────┬──────────────────────────────┬──────────────────────────────┬──────┘
               │                              │                              │
               ▼ (/)                          ▼ (/api/v1)                    ▼ (/api/v2/graphql)
     ╔══════════════════╗           ╔══════════════════╗           ╔══════════════════╗
-    ║  FRONTEND WEB    ║           ║  OPERATIONS API  ║──────────▶║  ANALYTICS HUB   ║
-    ║    (Next.js)     ║           ║    (Node.js)     ║   Sync    ║     (Python)     ║
+    ║  FRONTEND WEB    ║           ║  OPERATIONS API  ║           ║  ANALYTICS HUB   ║
+    ║    (Next.js)     ║           ║    (Node.js)     ║           ║     (Python)     ║
     ╠══════════════════╣           ╠══════════════════╣           ╠══════════════════╣
-    ║ - Admin Panel    ║           ║ - CRUD Logic     ║           ║ - GraphQL Schema ║
+    ║ - Admin Dashboard║           ║ - CRUD Business  ║           ║ - GraphQL Query  ║
     ║ - Socket Client  ║           ║ - Socket.io Serv ║           ║ - Data Mining    ║
     ╚══════════════════╝           ╚════════╦═════════╝           ╚════════╦═════════╝
-                                             ║                              ║
-                                             ▼                              ▼
-                                  ┌───────────────────┐          ┌───────────────────┐
-                                  │   OPERATIONS DB   │          │   ANALYTICS DB    │
-                                  │   (Port 5433)     │          │   (Port 5434)     │
-                                  └───────────────────┘          └───────────────────┘
+                                            ║                              ║
+                                            ║        EVENT SYNC            ║
+                                            ╚═════════════════════════════▶║
+                                            ║                              ║
+              DB 1 (Operations)             ║              DB 2 (Analytics)║
+             .───────────────.              ║             .───────────────.
+            |      DB       |◀══════════════╝            |      DB       |◀══════╝
+            :───────────────:                            :───────────────:
+            | operations_db |                            | analytics_db  |
+            :               :                            :               :
+             '─────────────'                              '─────────────'
+               (Port 5433)                                  (Port 5434)
 ```
 
 ## 📂 Project Structure

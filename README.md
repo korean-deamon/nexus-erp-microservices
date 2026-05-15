@@ -4,14 +4,15 @@ A high-performance, enterprise-grade ERP system built on a microservices archite
 
 ## 🚀 Key Features
 
-- **Microservices Architecture**: Orchestrated via Docker Compose with Node.js (Operations), Python (Analytics), Nginx (Gateway), PostgreSQL, and Redis.
+- **Microservices Architecture**: Orchestrated via Docker Compose with Node.js (Operations), Python (Analytics), Nginx (Gateway), and Redis.
+- **Database-per-Service Pattern**: Isolated PostgreSQL instances for Operations and Analytics to ensure data sovereignty and service autonomy.
 - **Dedicated Mobile App**: Built with Expo/React Native, featuring real-time push notifications, vibration feedback, and role-based filtering.
 - **Real-time Inventory Hub**: Integrated Socket.io logic that synchronize stock items immediately across Web and Mobile platforms.
 - **Advanced Control Center**: Multi-tier filtering (Status & User) with dynamic count badges for rapid administrative triage.
 - **Nexus Pro UI/UX**: State-of-the-art interface featuring Glassmorphism, dark-mode optimization, and high-fidelity design tokens.
 - **Audit-Ready Protocols**: Detailed order tracking including "Cancelled By [Role]" logic and historical state persistence.
 
-## 🏗️ System Architecture
+## 🏗️ System Architecture (Isolated Database Pattern)
 
 ```text
                                  ╔═══════════════════════════════════════╗
@@ -21,26 +22,22 @@ A high-performance, enterprise-grade ERP system built on a microservices archite
                                                  ▼ (HTTP/WebSocket)
         ┌──────────────────────────────────────────────────────────────────────────┐
         │                        NGINX API GATEWAY (Port 8080)                     │
-        │           (Central Routing, Load Balancing & SSL Termination)            │
         └─────┬──────────────────────────────┬──────────────────────────────┬──────┘
               │                              │                              │
-              ▼ (/)                          ▼ (/api/v1)                    ▼ (/graphql)
+              ▼ (/)                          ▼ (/api/v1)                    ▼ (/api/v2/graphql)
     ╔══════════════════╗           ╔══════════════════╗           ╔══════════════════╗
-    ║  FRONTEND WEB    ║           ║  OPERATIONS API  ║           ║  ANALYTICS HUB   ║
-    ║    (Next.js)     ║           ║    (Node.js)     ║           ║     (Python)     ║
+    ║  FRONTEND WEB    ║           ║  OPERATIONS API  ║──────────▶║  ANALYTICS HUB   ║
+    ║    (Next.js)     ║           ║    (Node.js)     ║   Sync    ║     (Python)     ║
     ╠══════════════════╣           ╠══════════════════╣           ╠══════════════════╣
-    ║ - Admin Panel    ║           ║ - JWT Auth       ║           ║ - GraphQL Schema ║
-    ║ - User Dashboard ║           ║ - Order Logic    ║           ║ - Data Mining    ║
-    ║ - Socket Client  ║           ║ - Socket.io Serv ║           ║ - FastAPI Engine ║
-    ╚═════════╦════════╝           ╚════════╦═════════╝           ╚════════╦═════════╝
-              ║                             ║                              ║
-              ╚══════════════╦══════════════╩══════════════╦═══════════════╝
-                             ║                             ║
-                             ▼                             ▼
-                  ┌───────────────────┐         ┌───────────────────┐
-                  │   POSTGRESQL DB   │         │    REDIS CACHE    │
-                  │ (Relational Data) │         │ (Real-time Sync)  │
-                  └───────────────────┘         └───────────────────┘
+    ║ - Admin Panel    ║           ║ - CRUD Logic     ║           ║ - GraphQL Schema ║
+    ║ - Socket Client  ║           ║ - Socket.io Serv ║           ║ - Data Mining    ║
+    ╚══════════════════╝           ╚════════╦═════════╝           ╚════════╦═════════╝
+                                             ║                              ║
+                                             ▼                              ▼
+                                  ┌───────────────────┐          ┌───────────────────┐
+                                  │   OPERATIONS DB   │          │   ANALYTICS DB    │
+                                  │   (Port 5433)     │          │   (Port 5434)     │
+                                  └───────────────────┘          └───────────────────┘
 ```
 
 ## 📂 Project Structure
@@ -51,10 +48,10 @@ final/
 │   ├── frontend/          # Next.js 14 Pro Dashboard (Web)
 │   └── mobile/            # Expo / React Native App (iOS/Android)
 ├── services/
-│   ├── service-a/         # Operations Microservice (Node.js/Prisma)
-│   ├── service-b/         # Analytics Microservice (Python/FastAPI/GraphQL)
+│   ├── service-a/         # Operations Microservice (Node.js/Prisma) -> DB 1
+│   ├── service-b/         # Analytics Microservice (Python/FastAPI) -> DB 2
 │   └── gateway/           # API Gateway (Nginx Reverse Proxy)
-├── docker-compose.yml     # Container Orchestration
+├── docker-compose.yml     # Container Orchestration (Isolated DBs)
 └── .env                   # Global Security & Environment Config
 ```
 

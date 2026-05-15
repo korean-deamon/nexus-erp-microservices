@@ -38,6 +38,7 @@ export default function App() {
   const [editingItem, setEditingItem] = useState(null);
   const [newItem, setNewItem] = useState({ name: '', price: '', quantity: '', sku: '' });
   const [basket, setBasket] = useState([]);
+  const [users, setUsers] = useState([]);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [userFilter, setUserFilter] = useState(null);
 
@@ -75,7 +76,7 @@ export default function App() {
         fetchData();
         
         if (data.message) {
-          Vibration.vibrate(100);
+          Vibration.vibrate([0, 200, 100, 200]);
           let prefix = '🛡️ SYSTEM';
           if (data.type === 'ORDER_RECEIVED') prefix = '🚀 NEW ORDER';
           if (data.type === 'ORDER_CANCELLED' || data.type === 'CANCEL') prefix = '🚫 CANCELLED';
@@ -103,6 +104,8 @@ export default function App() {
     setTimeout(() => setNotification(null), 4000);
   };
 
+  const [analytics, setAnalytics] = useState({ totalRevenue: 0, orderCount: 0 });
+
   const fetchData = async () => {
     try {
       const headers = { Authorization: `Bearer ${token}` };
@@ -114,8 +117,36 @@ export default function App() {
       setInventory(invRes.data);
       setOrders(orderRes.data);
       setBasket(basketRes.data);
+
+      if (user?.role === 'ADMIN') {
+        const userRes = await axios.get(`${API_BASE}/api/v1/auth/users`, { headers });
+        setUsers(userRes.data);
+      }
+
+      // Fetch from Service B (Analytics) via GraphQL
+      fetchAnalytics();
     } catch (err) {
       if (err.response?.status === 401) handleLogout();
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    try {
+      const query = `
+        query {
+          revenue
+          orderCount
+        }
+      `;
+      const res = await axios.post(`${API_BASE}/api/v2/graphql`, { query });
+      if (res.data.data) {
+        setAnalytics({
+          totalRevenue: res.data.data.revenue || 0,
+          orderCount: res.data.data.orderCount || 0
+        });
+      }
+    } catch (e) {
+      console.log('Analytics Sync Error');
     }
   };
 
@@ -297,9 +328,9 @@ export default function App() {
         {view === 'dashboard' && (
           <ScrollView style={{ padding: 20 }}>
             <View style={styles.statsGrid}>
-              <View style={styles.statCard}><Text style={styles.statLabel}>Revenue Flow</Text><Text style={styles.statValue}>${stats.revenue.toLocaleString()}</Text></View>
-              <View style={styles.statCard}><Text style={styles.statLabel}>Total Events</Text><Text style={styles.statValue}>{stats.totalEvents}</Text></View>
-              <View style={[styles.statCard, { borderRightWidth: 0 }]}><Text style={styles.statLabel}>Stock Alerts</Text><Text style={[styles.statValue, { color: stats.alerts > 0 ? '#f43f5e' : '#fff' }]}>{stats.alerts}</Text></View>
+              <View style={styles.statCard}><Text style={styles.statLabel}>Local Sales</Text><Text style={styles.statValue}>${stats.revenue.toLocaleString()}</Text></View>
+              <View style={styles.statCard}><Text style={styles.statLabel}>Global Insight (DB2)</Text><Text style={[styles.statValue, { color: '#10b981' }]}>${analytics.totalRevenue.toLocaleString()}</Text></View>
+              <View style={[styles.statCard, { borderRightWidth: 0 }]}><Text style={styles.statLabel}>Events</Text><Text style={styles.statValue}>{analytics.orderCount}</Text></View>
             </View>
 
             <Text style={styles.sectionTitle}>Performance Analysis</Text>
@@ -439,18 +470,17 @@ export default function App() {
                       </View>
                       <Text style={[styles.avatarName, !userFilter && { color: '#6366f1' }]}>ALL USERS</Text>
                    </TouchableOpacity>
-                   {[...new Set(orders.map(o => JSON.stringify({ id: o.userId, name: o.user?.name || 'User' })))].map(uStr => {
-                     const u = JSON.parse(uStr);
+                   {users.map(u => {
                      const activeCount = orders.filter(o => o.userId === u.id && o.status !== 'COMPLETED' && o.status !== 'CANCELLED').length;
                      return (
                        <TouchableOpacity key={u.id} onPress={() => setUserFilter(u.id)} style={[styles.avatarBox, userFilter === u.id && styles.activeAvatar]}>
                          <View style={[styles.avatarCircle, userFilter === u.id && { borderColor: '#6366f1' }]}>
-                           <Text style={[styles.avatarInitial, userFilter === u.id && { color: '#6366f1' }]}>{u.name.charAt(0)}</Text>
+                           <Text style={[styles.avatarInitial, userFilter === u.id && { color: '#6366f1' }]}>{u.name?.charAt(0)}</Text>
                            {activeCount > 0 && (
                              <View style={styles.badge}><Text style={styles.badgeText}>{activeCount}</Text></View>
                            )}
                          </View>
-                         <Text style={[styles.avatarName, userFilter === u.id && { color: '#6366f1' }]} numberOfLines={1}>{u.name.split(' ')[0]}</Text>
+                         <Text style={[styles.avatarName, userFilter === u.id && { color: '#6366f1' }]} numberOfLines={1}>{u.name?.split(' ')[0]}</Text>
                        </TouchableOpacity>
                      );
                    })}

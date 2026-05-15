@@ -1,18 +1,31 @@
 version: '3.8'
 
 services:
-  # Database: Shared PostgreSQL instance with multiple schemas/databases
-  postgres:
+  # Database 1: Operations
+  postgres-operations:
     image: postgres:15-alpine
-    container_name: nexus-db
+    container_name: nexus-db-operations
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: nexus_erp
+      POSTGRES_DB: operations_db
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_operations_data:/var/lib/postgresql/data
+
+  # Database 2: Analytics
+  postgres-analytics:
+    image: postgres:15-alpine
+    container_name: nexus-db-analytics
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: analytics_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_analytics_data:/var/lib/postgresql/data
 
   # Redis: For Caching, Session, and Pub/Sub
   redis:
@@ -27,12 +40,12 @@ services:
     container_name: service-operations
     restart: unless-stopped
     environment:
-      DATABASE_URL: "postgresql://admin:password@postgres:5432/nexus_erp?schema=operations"
+      DATABASE_URL: "postgresql://admin:password@postgres-operations:5432/operations_db"
       REDIS_URL: "redis://redis:6379"
       JWT_SECRET: "your_jwt_secret_here"
       SERVICE_B_URL: "http://service-analytics:8000"
     depends_on:
-      - postgres
+      - postgres-operations
       - redis
     ports:
       - "3001:3001"
@@ -46,11 +59,11 @@ services:
     container_name: service-analytics
     restart: unless-stopped
     environment:
-      DATABASE_URL: "postgresql://admin:password@postgres:5432/nexus_erp?schema=analytics"
+      DATABASE_URL: "postgresql://admin:password@postgres-analytics:5432/analytics_db"
       REDIS_URL: "redis://redis:6379"
       PYTHONUNBUFFERED: 1
     depends_on:
-      - postgres
+      - postgres-analytics
       - redis
     ports:
       - "8000:8000"
@@ -85,4 +98,5 @@ services:
       - frontend
 
 volumes:
-  postgres_data:
+  postgres_operations_data:
+  postgres_analytics_data:

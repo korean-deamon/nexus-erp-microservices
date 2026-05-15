@@ -26,6 +26,7 @@ export default function NexusApp() {
   const [inventory, setInventory] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [basket, setBasket] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [activeToast, setActiveToast] = useState<any>(null);
@@ -91,7 +92,8 @@ export default function NexusApp() {
       // Dinamik manzil: Agar sayt IP/localhost orqali ochilgan bo'lsa, o'sha manzilga ulanish
       const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
       // Eng ishonchli avtomatik ulanish
-      const socket = io({ path: '/socket.io/', transports: ['websocket', 'polling'] });
+      const socketUrl = host === 'localhost' ? 'http://localhost:8080' : `http://${host}:8080`;
+      const socket = io(socketUrl, { path: '/socket.io/', transports: ['websocket', 'polling'] });
  
       socket.on('connect', () => {
         socket.emit('join', { userId: user.id, role: user.role });
@@ -123,6 +125,8 @@ export default function NexusApp() {
             refreshData();
         } else if (data.type === 'REFRESH_ORDERS') {
             fetchOrders();
+        } else if (data.type === 'REFRESH_USERS') {
+            fetchUsers();
         } else if (data.type === 'REFRESH_INV') {
             fetchInventory();
         }
@@ -138,6 +142,9 @@ export default function NexusApp() {
     fetchInventory();
     fetchOrders();
     fetchBasket();
+    if (localStorage.getItem('user') && JSON.parse(localStorage.getItem('user')!).role === 'ADMIN') {
+        fetchUsers();
+    }
   };
 
   const fetchInventory = async () => {
@@ -149,6 +156,14 @@ export default function NexusApp() {
     const token = localStorage.getItem('token');
     const res = await axios.get('/api/v1/orders', { headers: { Authorization: `Bearer ${token}` } });
     setOrders(res.data);
+  };
+
+  const fetchUsers = async () => {
+    const token = localStorage.getItem('token');
+    try {
+        const res = await axios.get('/api/v1/auth/users', { headers: { Authorization: `Bearer ${token}` } });
+        setUsers(res.data);
+    } catch (e) { console.error('User fetch denied'); }
   };
 
   const fetchBasket = async () => {
@@ -360,6 +375,10 @@ export default function NexusApp() {
           <span className="font-black text-lg uppercase tracking-tighter">Nexus</span>
         </div>
         <div className="flex items-center gap-3">
+            <button onClick={() => setShowNotifDropdown(!showNotifDropdown)} className="relative p-2 bg-white/5 rounded-lg">
+                <Bell className={`w-5 h-5 ${unreadCount > 0 ? 'text-indigo-400' : 'text-zinc-600'}`} />
+                {unreadCount > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-600 rounded-full text-[8px] flex items-center justify-center font-black">{unreadCount}</span>}
+            </button>
             {!isAdmin && (
                 <button onClick={() => setShowVault(true)} className="relative p-2 bg-white/5 rounded-lg">
                     <CreditCard className="w-5 h-5 text-indigo-400" />
@@ -405,6 +424,12 @@ export default function NexusApp() {
              <p className="text-[9px] font-black uppercase tracking-widest text-indigo-500/70 mt-1">Operator: {currentUser?.name}</p>
           </div>
           <div className="flex items-center gap-6">
+             {!isAdmin && (
+                <button onClick={() => setShowVault(true)} className="relative p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
+                    <CreditCard className="w-5 h-5 text-indigo-400" />
+                    {basket.length > 0 && <span className="absolute -top-2 -right-2 w-5 h-5 bg-indigo-600 rounded-full text-[9px] flex items-center justify-center font-black border-2 border-[#020203]">{basket.length}</span>}
+                </button>
+             )}
              <div className="relative">
                 <button onClick={() => setShowNotifDropdown(!showNotifDropdown)} className="p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
                    <Bell className={`w-5 h-5 ${unreadCount > 0 ? 'text-indigo-400' : 'text-zinc-600'}`} />
@@ -413,7 +438,9 @@ export default function NexusApp() {
                   <div className="absolute top-16 right-0 w-72 glass-dark p-5 rounded-3xl border border-white/10 z-[200] shadow-2xl animate-in slide-in-from-top-2">
                      <p className="text-[8px] font-black uppercase text-zinc-500 mb-4">Live Feed</p>
                      <div className="space-y-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
-                        {notifications.map((n) => (
+                        {notifications.length === 0 ? (
+                           <p className="text-[8px] text-center py-4 text-zinc-600 uppercase font-black">No signals detected</p>
+                        ) : notifications.map((n) => (
                            <div key={n.id} className="text-[9px] p-4 rounded-xl bg-white/5 border border-white/5">
                               <p className="text-white">{n.message}</p>
                               <p className="text-zinc-600 text-[7px] mt-1 uppercase">{n.time}</p>
@@ -584,8 +611,7 @@ export default function NexusApp() {
                             </div>
                             <span className={`text-[8px] font-black uppercase tracking-tighter ${!userFilter ? 'text-indigo-400' : 'text-zinc-600'}`}>All Users</span>
                          </button>
-                         {Array.from(new Set(orders.map(o => JSON.stringify({ id: o.userId, name: o.user?.name || 'User' })))).map(uStr => {
-                            const u = JSON.parse(uStr);
+                         {users.map(u => {
                             const userActiveCount = orders.filter(o => o.userId === u.id && o.status !== 'COMPLETED' && o.status !== 'CANCELLED').length;
                             return (
                                <button 

@@ -12,9 +12,56 @@ const io = new Server(server, { cors: { origin: '*' } });
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'nexus-secret';
+const SERVICE_B_URL = process.env.SERVICE_B_URL || 'http://service-analytics:8000';
+
+async function syncToAnalytics(action, entity, payload) {
+    try {
+        await fetch(`${SERVICE_B_URL}/internal/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, entity, payload })
+        });
+    } catch (err) {
+        console.error('Failed to sync with Analytics:', err.message);
+    }
+}
+
+prisma.$use(async (params, next) => {
+    const result = await next(params);
+    try {
+        const action = params.action.toUpperCase();
+        if (params.model === 'User' && action === 'CREATE') {
+            syncToAnalytics('CREATE', 'USER', result);
+        } else if (params.model === 'Inventory') {
+            if (['CREATE', 'UPDATE'].includes(action)) syncToAnalytics(action, 'INVENTORY', result);
+            else if (action === 'DELETE') syncToAnalytics('DELETE', 'INVENTORY', { id: params.args.where.id });
+        } else if (params.model === 'Order') {
+            if (['CREATE', 'UPDATE'].includes(action)) syncToAnalytics(action, 'ORDER', result);
+        }
+    } catch (e) {
+        console.error("Sync middleware error", e);
+    }
+    return result;
+});
+
+async function runFullSync() {
+    try {
+        console.log('🔄 Running FULL SYNC to Analytics Engine...');
+        const users = await prisma.user.findMany();
+        const inventory = await prisma.inventory.findMany();
+        const orders = await prisma.order.findMany();
+        await syncToAnalytics('FULL_SYNC', 'ALL', { users, inventory, orders });
+        console.log('✅ FULL SYNC Complete');
+    } catch (err) {
+        console.error('❌ FULL SYNC Failed:', err.message);
+    }
+}
 
 prisma.$connect()
-  .then(() => console.log('📡 Connected to Nexus DB'))
+  .then(() => {
+      console.log('📡 Connected to Nexus DB');
+      setTimeout(runFullSync, 5000);
+  })
   .catch(err => console.error('❌ DB Connection Failed:', err));
 
 app.use(cors());
@@ -168,7 +215,7 @@ app.post('/checkout', authMiddleware, async (req, res) => {
                     userId: req.user.id,
                     productName: item.name,
                     quantity: item.quantity,
-                    totalAmount: parseFloat(item.price) * item.quantity,
+                    totalAmount: Number(item.price) * item.quantity,
                     status: 'PENDING',
                     paymentMethod: 'CASH'
                 }
@@ -176,22 +223,30 @@ app.post('/checkout', authMiddleware, async (req, res) => {
             // Inventory was already decremented during basket updates
         }
 
+        // Narxni hisoblashda xatolik bo'lmasligi uchun Decimal ni songa aylantiramiz
+        const total = basketItems.reduce((acc, i) => acc + (Number(i.price) * i.quantity), 0);
         await prisma.basketItem.deleteMany({ where: { userId: req.user.id } });
 
         io.to(req.user.id).emit('notification', { type: 'CHECKOUT', message: 'Order finalized!' });
         
         // Adminga xabar yuborish (Faqat Adminlar xonasiga)
         const orderSummary = basketItems.map(i => i.name).join(', ');
+        const userName = req.user.name || req.user.email;
         const notificationData = { 
             type: 'ORDER_RECEIVED', 
-            message: `${req.user.name} placed a new order ($${total.toLocaleString()}). Items: ${orderSummary}` 
+            message: `${userName} placed a new order ($${total.toFixed(2)}). Items: ${orderSummary}` 
         };
         
         console.log(`📣 NOTIFYING ADMINS: ${notificationData.message}`);
         io.to('ADMIN_ROOM').emit('notification', notificationData);
+        io.to('ADMIN_ROOM').emit('notification', { type: 'REFRESH_ORDERS' });
 
         res.json({ success: true });
-    } catch (err) { res.status(500).json(err); }
+    } catch (err) { 
+        console.error('❌ CRITICAL CHECKOUT ERROR:', err);
+        const errorMsg = err instanceof Error ? err.message : 'Unknown Protocol Error';
+        res.status(500).json({ error: `Checkout Protocol Failure: ${errorMsg}` }); 
+    }
 });
 
 app.patch('/orders/:id/cancel', authMiddleware, async (req, res) => {
@@ -303,8 +358,12 @@ app.post('/auth/register', async (req, res) => {
     const { email, password, name } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({ data: { email, password: hashedPassword, name, role: 'USER' } });
+    
+    // Adminga yangi user haqida xabar yuborish
+    io.to('ADMIN_ROOM').emit('notification', { type: 'REFRESH_USERS', message: `New user registered: ${name}` });
+
     const expiry = process.env.JWT_EXPIRY || '3h';
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: expiry });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role, name: user.name }, JWT_SECRET, { expiresIn: expiry });
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
 });
 
@@ -313,8 +372,17 @@ app.post('/auth/login', async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ error: 'Wrong credentials' });
     const expiry = process.env.JWT_EXPIRY || '3h';
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: expiry });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role, name: user.name }, JWT_SECRET, { expiresIn: expiry });
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+});
+
+app.get('/auth/users', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const users = await prisma.user.findMany({ 
+            select: { id: true, email: true, name: true, role: true, createdAt: true } 
+        });
+        res.json(users);
+    } catch (err) { res.status(500).json(err); }
 });
 
 server.listen(3005, '0.0.0.0', () => {

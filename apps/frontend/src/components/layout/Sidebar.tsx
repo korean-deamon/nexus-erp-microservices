@@ -16,8 +16,8 @@ export default function Sidebar({ tabs, activeTab, setActiveTab, isAdmin, orders
   return (
     <aside className="hidden lg:flex w-64 border-r border-white/5 p-6 h-screen sticky top-0 flex-col z-[100] glass-dark">
       <div className="flex items-center gap-3 mb-10 px-2">
-        <Layers className="text-indigo-500 w-6 h-6" />
-        <span className="font-black text-xl uppercase tracking-tighter">Nexus<span className="text-indigo-500">.</span></span>
+        <Layers className="text-indigo-400 w-6 h-6 drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+        <span className="font-black text-xl uppercase tracking-tighter gradient-text">Nexus<span className="text-indigo-300">.</span></span>
       </div>
       <nav className="flex-1 space-y-1">
         {tabs.map(tab => (

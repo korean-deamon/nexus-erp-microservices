@@ -18,8 +18,8 @@ export default function PageHeader({ activeTab, currentUser, isAdmin, basket, no
   return (
     <header className="hidden lg:flex justify-between items-end mb-8">
       <div>
-        <h2 className="text-4xl font-black text-white uppercase tracking-tighter">{activeTab}</h2>
-        <p className="text-[9px] font-black uppercase tracking-widest text-indigo-500/70 mt-1">Operator: {currentUser?.name}</p>
+        <h2 className="text-4xl font-black uppercase tracking-tighter gradient-text">{activeTab}</h2>
+        <p className="text-[9px] font-black uppercase tracking-widest text-indigo-400/60 mt-1">Operator: <span className="text-indigo-300">{currentUser?.name}</span></p>
       </div>
       <div className="flex items-center gap-6">
         {!isAdmin && (

@@ -34,8 +34,8 @@ export default function Dashboard({ stats, isAdmin, orders, currentUser }: Props
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass p-6 md:p-8 rounded-[2rem] border-white/5">
-          <h3 className="font-black text-white uppercase text-[9px] tracking-widest mb-6 flex items-center gap-2">
+        <div className="glow-card p-6 md:p-8">
+          <h3 className="font-black gradient-text uppercase text-[9px] tracking-widest mb-6 flex items-center gap-2">
             <PieChart className="w-4 h-4 text-indigo-400" /> Performance Analysis
           </h3>
           <div className="space-y-4">
@@ -63,8 +63,8 @@ export default function Dashboard({ stats, isAdmin, orders, currentUser }: Props
           </div>
         </div>
 
-        <div className="glass p-6 md:p-8 rounded-[2rem] border-white/5">
-          <h3 className="font-black text-white uppercase text-[9px] tracking-widest mb-6 flex items-center gap-2">
+        <div className="glow-card p-6 md:p-8">
+          <h3 className="font-black gradient-text uppercase text-[9px] tracking-widest mb-6 flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-indigo-400" /> Recent Operations
           </h3>
           <div className="space-y-3">

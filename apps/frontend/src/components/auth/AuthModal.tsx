@@ -14,11 +14,15 @@ export default function AuthModal({ authForm, setAuthForm, isRegisterMode, setIs
     <div className="fixed inset-0 bg-black/80 backdrop-blur-3xl z-[5000] flex items-center justify-center p-4">
       <div className="glass-dark w-full max-w-md p-8 rounded-[2.5rem] border-white/10 shadow-2xl animate-in zoom-in-95 duration-300">
         <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-indigo-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-2xl shadow-indigo-600/20 rotate-12">
-            <ShieldCheck className="w-10 h-10 text-white -rotate-12" />
+          <div className="relative w-20 h-20 mx-auto mb-6">
+            <div className="absolute inset-0 bg-indigo-600 rounded-3xl rotate-12 shadow-2xl shadow-indigo-600/40" />
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-3xl rotate-12 opacity-80" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <ShieldCheck className="w-10 h-10 text-white" />
+            </div>
           </div>
-          <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Nexus Terminal</h2>
-          <p className="text-[8px] font-black text-indigo-400 uppercase tracking-[0.3em] mt-2">Authorization Required</p>
+          <h2 className="text-3xl font-black uppercase tracking-tighter gradient-text">Nexus Terminal</h2>
+          <p className="text-[8px] font-black text-indigo-400/70 uppercase tracking-[0.3em] mt-2">Authorization Required</p>
         </div>
         <form onSubmit={onSubmit} className="space-y-4">
           {isRegisterMode && (

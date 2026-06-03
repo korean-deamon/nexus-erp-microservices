@@ -14,12 +14,12 @@ interface Props {
 
 export default function Sidebar({ tabs, activeTab, setActiveTab, isAdmin, orders, currentUser, onLogout }: Props) {
   return (
-    <aside className="hidden lg:flex w-64 border-r border-white/5 p-6 h-screen sticky top-0 flex-col z-[100] glass-dark">
-      <div className="flex items-center gap-3 mb-10 px-2">
+    <aside className="hidden lg:flex w-64 border-r border-white/5 px-4 py-6 fixed top-0 left-0 h-screen flex-col z-[100] glass-dark">
+      <div className="flex items-center gap-3 mb-6 px-2">
         <Layers className="text-indigo-400 w-6 h-6 drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
         <span className="font-black text-xl uppercase tracking-tighter gradient-text">Nexus<span className="text-indigo-300">.</span></span>
       </div>
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 min-h-0 space-y-1 overflow-y-auto custom-scrollbar pr-1">
         {tabs.map(tab => (
           (!tab.admin || isAdmin) && (!tab.hideForAdmin || !isAdmin) && (
             <button

@@ -207,7 +207,7 @@ export default function NexusApp() {
       <MobileHeader currentUser={currentUser} isAdmin={isAdmin} basket={basket} unreadCount={0} setShowNotifDropdown={setShowNotifDropdown} setShowVault={setShowVault} />
       <BottomNav tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} isAdmin={isAdmin} orders={orders} currentUser={currentUser} onLogout={handleLogout} />
 
-      <main className="flex-1 p-4 md:p-8 pb-32 lg:pb-8 overflow-y-auto custom-scrollbar">
+      <main className="flex-1 lg:ml-64 p-4 md:p-8 pb-32 lg:pb-8 min-h-screen">
         <PageHeader activeTab={activeTab} currentUser={currentUser} isAdmin={isAdmin} basket={basket} notifications={notifications} unreadCount={0} showNotifDropdown={showNotifDropdown} setShowNotifDropdown={setShowNotifDropdown} setShowVault={setShowVault} />
 
         <div key={activeTab} className="page-transition">

@@ -10,17 +10,12 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: rgb(var(--background-start-rgb));
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-/* Custom Glassmorphism */
+/* ── Glassmorphism ─────────────────────────────────────────────────── */
 .glass {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(24px) saturate(180%);
@@ -29,69 +24,140 @@ body {
 }
 
 .glass-dark {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(40px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* Animations */
+/* ── Page Transition ───────────────────────────────────────────────── */
+@keyframes page-in {
+  0%   { opacity: 0; transform: translateY(16px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0px)  scale(1);    }
+}
+
+.page-transition {
+  animation: page-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Float animation ───────────────────────────────────────────────── */
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0%   { transform: translateY(0px);   }
+  50%  { transform: translateY(-10px); }
+  100% { transform: translateY(0px);   }
 }
+.animate-float { animation: float 6s ease-in-out infinite; }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
+/* ── Glow pulse ────────────────────────────────────────────────────── */
 @keyframes pulse-indigo {
-  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
-  70% { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+  0%   { box-shadow: 0 0 0 0   rgba(79, 70, 229, 0.4); }
+  70%  { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0);   }
+  100% { box-shadow: 0 0 0 0   rgba(79, 70, 229, 0);   }
 }
+.pulse-glow { animation: pulse-indigo 2s infinite; }
 
-.pulse-glow {
-  animation: pulse-indigo 2s infinite;
-}
-
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.2);
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.4);
-}
-
-/* Shimmer Effect */
+/* ── Shimmer ───────────────────────────────────────────────────────── */
 .shimmer {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
 
-/* Mesh Gradient Background */
-.mesh-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background-color: #020203;
-  background-image: 
-    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.15) 0, transparent 50%), 
-    radial-gradient(at 100% 0%, hsla(339,49%,30%,0.05) 0, transparent 50%);
+/* ── Scrollbar ─────────────────────────────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar       { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(99,102,241,0.2); border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.45); }
+
+/* ── Stat card hover glow ──────────────────────────────────────────── */
+.stat-card {
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+}
+.stat-card:hover {
+  border-color: rgba(99,102,241,0.25) !important;
+  box-shadow: 0 0 30px rgba(99,102,241,0.08), inset 0 0 20px rgba(99,102,241,0.03);
+  transform: translateY(-2px);
+}
+
+/* ── Sidebar nav glow ──────────────────────────────────────────────── */
+.nav-btn-active {
+  position: relative;
+}
+.nav-btn-active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 20px rgba(99,102,241,0.35);
+  pointer-events: none;
+}
+
+/* ── Aurora Background (CSS-only, GPU-accelerated) ─────────────────── */
+@keyframes aurora-1 {
+  0%   { transform: translate(0%,   0%)   scale(1);    }
+  33%  { transform: translate(15%, -10%)  scale(1.15); }
+  66%  { transform: translate(-10%, 12%)  scale(0.9);  }
+  100% { transform: translate(0%,   0%)   scale(1);    }
+}
+@keyframes aurora-2 {
+  0%   { transform: translate(0%,   0%)   scale(1);    }
+  33%  { transform: translate(-18%, 8%)   scale(1.2);  }
+  66%  { transform: translate(12%, -15%)  scale(0.85); }
+  100% { transform: translate(0%,   0%)   scale(1);    }
+}
+@keyframes aurora-3 {
+  0%   { transform: translate(0%,  0%)   scale(1);   }
+  50%  { transform: translate(10%, 15%)  scale(1.1); }
+  100% { transform: translate(0%,  0%)   scale(1);   }
+}
+@keyframes aurora-4 {
+  0%   { transform: translate(0%,   0%)  scale(1);    }
+  50%  { transform: translate(-12%, -8%) scale(1.25); }
+  100% { transform: translate(0%,   0%)  scale(1);    }
+}
+
+.aurora-1 {
+  position: absolute; width: 70vw; height: 70vw;
+  top: -20%; left: -10%;
+  background: radial-gradient(ellipse, rgba(99,102,241,0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: aurora-1 18s ease-in-out infinite;
+  will-change: transform;
+}
+.aurora-2 {
+  position: absolute; width: 60vw; height: 60vw;
+  bottom: -15%; right: -10%;
+  background: radial-gradient(ellipse, rgba(79,70,229,0.16) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: aurora-2 22s ease-in-out infinite;
+  will-change: transform;
+}
+.aurora-3 {
+  position: absolute; width: 50vw; height: 50vw;
+  top: 30%; left: 30%;
+  background: radial-gradient(ellipse, rgba(139,92,246,0.11) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: aurora-3 26s ease-in-out infinite;
+  will-change: transform;
+}
+.aurora-4 {
+  position: absolute; width: 40vw; height: 40vw;
+  top: 10%; right: 15%;
+  background: radial-gradient(ellipse, rgba(67,56,202,0.13) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: aurora-4 20s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Dot grid */
+.grid-overlay {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(99,102,241,0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
 }

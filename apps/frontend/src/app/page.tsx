@@ -210,9 +210,11 @@ export default function NexusApp() {
       <main className="flex-1 p-4 md:p-8 pb-32 lg:pb-8 overflow-y-auto custom-scrollbar">
         <PageHeader activeTab={activeTab} currentUser={currentUser} isAdmin={isAdmin} basket={basket} notifications={notifications} unreadCount={0} showNotifDropdown={showNotifDropdown} setShowNotifDropdown={setShowNotifDropdown} setShowVault={setShowVault} />
 
-        {activeTab === 'dashboard' && <Dashboard stats={stats} isAdmin={isAdmin} orders={orders} currentUser={currentUser} />}
-        {activeTab === 'inventory' && <InventoryView inventory={inventory} basket={basket} isAdmin={isAdmin} onAddToBasket={handleAddToBasket} onRemoveFromBasket={handleRemoveFromBasket} onEdit={setShowEditModal} onDelete={handleDeleteInventory} onAddNew={() => setShowAddModal(true)} />}
-        {(activeTab === 'orders' || activeTab === 'admin') && <OrdersView activeTab={activeTab} orders={orders} users={users} currentUser={currentUser} isAdmin={isAdmin} statusFilter={statusFilter} setStatusFilter={setStatusFilter} userFilter={userFilter} setUserFilter={setUserFilter} onStatusUpdate={handleStatusUpdate} onCancel={handleCancelOrder} />}
+        <div key={activeTab} className="page-transition">
+          {activeTab === 'dashboard' && <Dashboard stats={stats} isAdmin={isAdmin} orders={orders} currentUser={currentUser} />}
+          {activeTab === 'inventory' && <InventoryView inventory={inventory} basket={basket} isAdmin={isAdmin} onAddToBasket={handleAddToBasket} onRemoveFromBasket={handleRemoveFromBasket} onEdit={setShowEditModal} onDelete={handleDeleteInventory} onAddNew={() => setShowAddModal(true)} />}
+          {(activeTab === 'orders' || activeTab === 'admin') && <OrdersView activeTab={activeTab} orders={orders} users={users} currentUser={currentUser} isAdmin={isAdmin} statusFilter={statusFilter} setStatusFilter={setStatusFilter} userFilter={userFilter} setUserFilter={setUserFilter} onStatusUpdate={handleStatusUpdate} onCancel={handleCancelOrder} />}
+        </div>
       </main>
 
       {showVault        && <VaultSidebar basket={basket} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} onClose={() => setShowVault(false)} onCheckout={handleCheckout} onAddToBasket={handleAddToBasket} onRemoveFromBasket={handleRemoveFromBasket} onDeleteItem={handleDeleteBasketItem} />}

@@ -16,17 +16,20 @@ export default function Dashboard({ stats, isAdmin, orders, currentUser }: Props
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="glass p-6 rounded-3xl border-white/10">
+        <div className="stat-card glass p-6 rounded-3xl border border-white/10">
           <p className="text-zinc-500 text-[8px] font-black uppercase tracking-widest">Revenue Flow</p>
           <p className="text-2xl md:text-4xl font-black text-white mt-3 tracking-tighter">${stats.revenue.toLocaleString()}</p>
+          <div className="mt-4 h-0.5 w-full bg-gradient-to-r from-indigo-500/40 via-violet-500/20 to-transparent rounded-full" />
         </div>
-        <div className="glass p-6 rounded-3xl border-white/10">
+        <div className="stat-card glass p-6 rounded-3xl border border-white/10">
           <p className="text-zinc-500 text-[8px] font-black uppercase tracking-widest">Total Events</p>
           <p className="text-2xl md:text-4xl font-black text-white mt-3 tracking-tighter">{stats.events}</p>
+          <div className="mt-4 h-0.5 w-full bg-gradient-to-r from-violet-500/40 via-indigo-500/20 to-transparent rounded-full" />
         </div>
-        <div className="glass p-6 rounded-3xl border-white/10">
+        <div className="stat-card glass p-6 rounded-3xl border border-white/10">
           <p className="text-zinc-500 text-[8px] font-black uppercase tracking-widest">{isAdmin ? 'Stock Alerts' : 'Active Orders'}</p>
           <p className={`text-2xl md:text-4xl font-black mt-3 tracking-tighter ${stats.secondary > 0 ? 'text-rose-500' : 'text-white'}`}>{stats.secondary}</p>
+          <div className={`mt-4 h-0.5 w-full bg-gradient-to-r ${stats.secondary > 0 ? 'from-rose-500/40 via-rose-500/20' : 'from-emerald-500/40 via-emerald-500/20'} to-transparent rounded-full`} />
         </div>
       </div>
 

@@ -25,7 +25,7 @@ export default function Sidebar({ tabs, activeTab, setActiveTab, isAdmin, orders
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full p-3.5 rounded-2xl flex items-center gap-4 transition-all relative ${activeTab === tab.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-zinc-500 hover:bg-white/5 hover:text-white'}`}
+              className={`w-full p-3.5 rounded-2xl flex items-center gap-4 transition-all relative ${activeTab === tab.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 nav-btn-active' : 'text-zinc-500 hover:bg-white/5 hover:text-white'}`}
             >
               <div className="relative">
                 <tab.icon className="w-4 h-4" />

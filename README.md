@@ -1,94 +1,147 @@
-# 🛡️ Nexus ERP: Universal Operational Suite (v3.0)
+# Nexus ERP: Universal Operational Suite (v4.0)
 
-A high-performance, enterprise-grade ERP system built on a microservices architecture. Featuring real-time stock synchronization, advanced analytics, a premium "Nexus Pro" visual interface, and a **dedicated mobile application (Expo SDK 51)** for field operations.
+Enterprise-grade ERP system built on a microservices architecture. Features real-time stock synchronization, GraphQL analytics, JWT authentication, Socket.io live notifications, and a dedicated mobile app (Expo).
 
-## 🚀 Key Features
+## Key Features
 
-- **Microservices Architecture**: Orchestrated via Docker Compose with Node.js (Operations), Python (Analytics), Nginx (Gateway), and Redis.
-- **Database-per-Service Pattern**: Isolated PostgreSQL instances for Operations and Analytics to ensure data sovereignty and service autonomy.
-- **Dedicated Mobile App**: Built with Expo/React Native, featuring real-time push notifications, vibration feedback, and role-based filtering.
-- **Real-time Inventory Hub**: Integrated Socket.io logic that synchronize stock items immediately across Web and Mobile platforms.
-- **Advanced Control Center**: Multi-tier filtering (Status & User) with dynamic count badges for rapid administrative triage.
-- **Nexus Pro UI/UX**: State-of-the-art interface featuring Glassmorphism, dark-mode optimization, and high-fidelity design tokens.
-- **Audit-Ready Protocols**: Detailed order tracking including "Cancelled By [Role]" logic and historical state persistence.
+- **Microservices Architecture** — Docker Compose: Node.js (Operations), Python (Analytics), Nginx (Gateway), Redis
+- **Database-per-Service** — Isolated PostgreSQL instances for Operations and Analytics
+- **Real-time Engine** — Socket.io: live inventory updates, order notifications, admin alerts with sound
+- **GraphQL Analytics** — Python/FastAPI/Strawberry serving revenue, order count, user data
+- **JWT Auth** — bcrypt password hashing, role-based access (ADMIN / USER)
+- **Modular Codebase** — All services split into focused files (routes, middleware, components, hooks)
+- **Aesthetic UI** — Aurora CSS background, gradient text, glow cards, page transitions, glassmorphism
+- **Mobile App** — Expo/React Native with SecureStore, vibration notifications, same API
 
-## 🏗️ System Architecture (Isolated Database Pattern)
+## System Architecture
 
-```text
-                                 ╔═══════════════════════════════════════╗
-                                 ║   USER / WEB BROWSER / MOBILE APP     ║
-                                 ╚═══════════════╦═══════════════════════╝
-                                                 ║
-                                                 ▼ (HTTP/WebSocket/GraphQL)
-        ┌──────────────────────────────────────────────────────────────────────────┐
-        │                        NGINX API GATEWAY (Port 8080)                     │
-        └─────┬──────────────────────────────┬──────────────────────────────┬──────┘
-              │                              │                              │
-              ▼ (/)                          ▼ (/api/v1)                    ▼ (/api/v2/graphql)
-    ╔══════════════════╗           ╔══════════════════╗           ╔══════════════════╗
-    ║  FRONTEND WEB    ║           ║  OPERATIONS API  ║           ║  ANALYTICS HUB   ║
-    ║    (Next.js)     ║           ║    (Node.js)     ║           ║     (Python)     ║
-    ╠══════════════════╣           ╠══════════════════╣           ╠══════════════════╣
-    ║ - Admin Dashboard║           ║ - CRUD Business  ║           ║ - GraphQL Query  ║
-    ║ - Socket Client  ║           ║ - Socket.io Serv ║           ║ - Data Mining    ║
-    ╚══════════════════╝           ╚════════╦═════════╝           ╚════════╦═════════╝
-                                            ║                              ║
-                                            ║        EVENT SYNC            ║
-                                            ╚═════════════════════════════▶║
-                                            ║                              ║
-              DB 1 (Operations)             ║              DB 2 (Analytics)║
-             .───────────────.              ║             .───────────────.
-            |      DB       |◀══════════════╝            |      DB       |◀══════╝
-            :───────────────:                            :───────────────:
-            | operations_db |                            | analytics_db  |
-            :               :                            :               :
-             '─────────────'                              '─────────────'
-               (Port 5433)                                  (Port 5434)
+```
+User / Browser / Mobile
+        ↓
+NGINX Gateway (port 8080)
+  /              → Frontend    (Next.js  :3000)
+  /api/v1/*      → Service-A   (Node.js  :3005)
+  /socket.io/    → Service-A   (WebSocket)
+  /api/v2/graphql→ Service-B   (Python   :8000)
+        ↓
+  Service-A ──sync──→ Service-B
+  PostgreSQL DB-1     PostgreSQL DB-2
+  (operations_db)     (analytics_db)
+        ↓
+      Redis
 ```
 
-## 📂 Project Structure
+## Project Structure
 
-```text
+```
 final/
-├── apps/
-│   ├── frontend/          # Next.js 14 Pro Dashboard (Web)
-│   └── mobile/            # Expo / React Native App (iOS/Android)
+├── docker-compose.yml
+├── .env
+├── infra/gateway/nginx.conf
+│
 ├── services/
-│   ├── service-a/         # Operations Microservice (Node.js/Prisma) -> DB 1
-│   ├── service-b/         # Analytics Microservice (Python/FastAPI) -> DB 2
-│   └── gateway/           # API Gateway (Nginx Reverse Proxy)
-├── docker-compose.yml     # Container Orchestration (Isolated DBs)
-└── .env                   # Global Security & Environment Config
+│   ├── service-a/                  Node.js Operations API
+│   │   ├── prisma/
+│   │   │   ├── schema.prisma       DB schema (User, Inventory, Order, BasketItem)
+│   │   │   └── seed.js             Initial data (admin + inventory)
+│   │   └── src/
+│   │       ├── index.js            App entry (40 lines)
+│   │       ├── sync.js             Analytics sync + Prisma middleware
+│   │       ├── middleware/auth.js  JWT authMiddleware + adminMiddleware
+│   │       └── routes/
+│   │           ├── auth.js         POST /auth/login, /register, GET /auth/users
+│   │           ├── inventory.js    GET/POST/PUT/DELETE /inventory
+│   │           ├── basket.js       GET/POST/DELETE /basket
+│   │           └── orders.js       GET /orders, POST /checkout, PATCH status/cancel
+│   │
+│   └── service-b/                  Python Analytics API
+│       └── app/
+│           ├── main.py             FastAPI entry (20 lines)
+│           ├── database.py         DB connection + init
+│           ├── models.py           SQLAlchemy models
+│           ├── sync.py             POST /internal/sync handler
+│           └── graphql/schema.py   Strawberry GraphQL (inventory, users, orders, revenue)
+│
+└── apps/
+    ├── frontend/                   Next.js Web Dashboard
+    │   └── src/
+    │       ├── app/
+    │       │   ├── page.tsx        Main orchestrator (state + handlers)
+    │       │   ├── layout.tsx      HTML wrapper
+    │       │   └── globals.css     Aurora bg, glassmorphism, transitions
+    │       ├── types/index.ts      TypeScript types
+    │       ├── utils/helpers.ts    getStatusColor, groupOrders
+    │       └── components/
+    │           ├── auth/           AuthModal
+    │           ├── layout/         Sidebar, MobileHeader, BottomNav, PageHeader
+    │           ├── dashboard/      Dashboard (stats, charts)
+    │           ├── inventory/      InventoryView, InventoryModal
+    │           ├── orders/         OrdersView (filters, user avatars, status actions)
+    │           ├── vault/          VaultSidebar (basket + checkout)
+    │           └── ui/             Toast, QuantitySelector, BackgroundScene
+    │
+    └── mobile/                     Expo React Native App
+        └── App.js                  Full mobile UI (SecureStore, vibration, GraphQL)
 ```
 
-## 🚥 Quick Start Guide
+## Quick Start
 
-### 1. Backend & Web (Infrastructure)
-1. **Configure Environment**: Copy `.env.example` to `.env`. Ensure `DATABASE_URL` is set.
-2. **Launch Containers**:
-   ```bash
-   docker-compose up -d --build
-   ```
-3. **Initialize Database**:
-   ```bash
-   docker-compose exec service-operations npx prisma db push
-   ```
+```bash
+# 1. Start all services
+docker compose up -d
 
-### 2. Mobile Application (Expo SDK 51)
-1. **Navigate to App**: `cd apps/mobile`
-2. **Install Dependencies**: `npm install`
-3. **Set Environment**: Ensure `EXPO_PUBLIC_API_URL` in `.env` points to your machine's local IP (e.g., `http://192.168.1.10:8080`).
-4. **Launch with Cache Clear**:
-   ```bash
-   npx expo start -c --offline
-   ```
+# 2. Open in browser (first load ~30s compile)
+http://localhost:8080
 
-## 📊 Operations Guide
+# Default admin credentials
+Email:    admin@nexus.local
+Password: admin123
+```
 
-- **Status Filters**: Both Web and Mobile allow filtering orders by PENDING, SHIPPED, DELIVERED, etc.
-- **Admin Control**: Admins can approve shipments, manage assets, and view active order counts per user.
-- **Notification Engine**: Real-time sound/vibration alerts for new orders and status updates across all connected devices.
-- **Smart Checkout**: Stock is validated and locked at the moment of adding to the basket to prevent protocol conflicts.
+## Mobile App
+
+```bash
+cd apps/mobile
+npm install
+
+# Set your machine's local IP in apps/mobile/.env
+EXPO_PUBLIC_API_URL=http://192.168.x.x:8080
+
+npx expo start -c --offline
+```
+
+## API Reference
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | /api/v1/auth/login | — | Login, returns JWT |
+| POST | /api/v1/auth/register | — | Register new user |
+| GET | /api/v1/inventory | — | List all products |
+| POST | /api/v1/basket | User | Add item to cart |
+| POST | /api/v1/checkout | User | Place order |
+| GET | /api/v1/orders | User/Admin | List orders |
+| PATCH | /api/v1/orders/:id/status | Admin | Update order status |
+| POST | /api/v2/graphql | — | GraphQL analytics |
+
+## Order Status Flow
+
+```
+PENDING → SHIPPED → DELIVERED → COMPLETED
+    ↓                   ↓             ↓
+  CANCELLED          CANCELLED    (final)
+```
+
+## Default Ports
+
+| Port | Service |
+|------|---------|
+| 8080 | Nginx Gateway (main entry) |
+| 3000 | Frontend (direct) |
+| 3001 | Service-A (direct) |
+| 8000 | Service-B (direct) |
+| 5433 | PostgreSQL operations_db |
+| 5434 | PostgreSQL analytics_db |
+| 6380 | Redis |
 
 ---
-*Developed for BTEC APP Final - Nexus Operational Protocol v3.0 (Full Release)*
+*BTEC APP Final — Nexus Operational Protocol v4.0*

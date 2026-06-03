@@ -17,6 +17,7 @@ import InventoryModal   from '@/components/inventory/InventoryModal';
 import OrdersView       from '@/components/orders/OrdersView';
 import VaultSidebar     from '@/components/vault/VaultSidebar';
 import Toast            from '@/components/ui/Toast';
+import BackgroundScene  from '@/components/ui/BackgroundScene';
 
 export default function NexusApp() {
   const [mounted,             setMounted]             = useState(false);
@@ -200,7 +201,7 @@ export default function NexusApp() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-[#020203] text-zinc-200 font-sans relative overflow-hidden">
-      <div className="mesh-bg" />
+      <BackgroundScene />
 
       <Sidebar tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} isAdmin={isAdmin} orders={orders} currentUser={currentUser} onLogout={handleLogout} />
       <MobileHeader currentUser={currentUser} isAdmin={isAdmin} basket={basket} unreadCount={0} setShowNotifDropdown={setShowNotifDropdown} setShowVault={setShowVault} />

@@ -56,10 +56,20 @@ export default function NexusApp() {
 
   useEffect(() => {
     setMounted(true);
-    
-    // API manzilini sozlash
+
     const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
     axios.defaults.baseURL = host === 'localhost' ? 'http://localhost:8080' : `http://${host}:8080`;
+
+    axios.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response?.status === 401) {
+          localStorage.clear();
+          window.location.reload();
+        }
+        return Promise.reject(error);
+      }
+    );
 
     const savedToken = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
@@ -160,10 +170,12 @@ export default function NexusApp() {
 
   const fetchUsers = async () => {
     const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    if (!savedUser || JSON.parse(savedUser).role !== 'ADMIN') return;
     try {
         const res = await axios.get('/api/v1/auth/users', { headers: { Authorization: `Bearer ${token}` } });
         setUsers(res.data);
-    } catch (e) { console.error('User fetch denied'); }
+    } catch (e) {}
   };
 
   const fetchBasket = async () => {

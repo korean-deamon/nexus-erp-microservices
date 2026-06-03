@@ -4,6 +4,9 @@
 .idea/
 Thumbs.db
 
+# Claude Code
+.claude/
+
 # Dependency directories
 node_modules/
 __pycache__/

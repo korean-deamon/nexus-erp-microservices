@@ -59,7 +59,7 @@ export default function OrdersView({ activeTab, orders, users, currentUser, isAd
               </div>
               <span className={`text-[8px] font-black uppercase tracking-tighter ${!userFilter ? 'text-indigo-400' : 'text-zinc-600'}`}>All Users</span>
             </button>
-            {users.map(u => {
+            {users.filter(u => u.role !== 'ADMIN').map(u => {
               const activeCount = orders.filter(o => o.userId === u.id && o.status !== 'COMPLETED' && o.status !== 'CANCELLED').length;
               return (
                 <button key={u.id} onClick={() => setUserFilter(u.id)} className="flex flex-col items-center gap-2 group min-w-[60px]">
@@ -87,7 +87,7 @@ export default function OrdersView({ activeTab, orders, users, currentUser, isAd
           <div key={date} className="space-y-3">
             <p className="text-zinc-600 font-black uppercase text-[7px] tracking-widest pl-2">{date}</p>
             {items.map(o => (
-              <div key={o.id} className={`glass p-5 rounded-2xl border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 ${o.status === 'CANCELLED' ? 'opacity-30 grayscale' : 'hover:border-indigo-500/15'}`}>
+              <div key={o.id} className={`glass p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-4 transition-all ${o.status === 'CANCELLED' ? 'opacity-50 border-rose-500/10' : 'border-white/5 hover:border-indigo-500/20'}`}>
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 ${getStatusColor(o.status)}`}>
                     <ShoppingCart className="w-5 h-5" />
